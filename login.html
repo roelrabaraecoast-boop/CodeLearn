@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>CodeLearn | Login</title><link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+<main class="auth-container">
+  <section class="auth-card">
+    <div class="auth-logo">&lt;/&gt; CodeLearn</div>
+    <p class="small-title">Welcome back</p>
+    <h1>Login to CodeLearn</h1>
+    <p class="auth-subtitle">Use your username and password to continue learning.</p>
+    <form id="loginForm" novalidate>
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" placeholder="Enter username" autocomplete="username" required>
+      <div id="usernameError" class="field-error"></div>
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+      <div id="passwordError" class="field-error"></div>
+      <div id="loginError" class="login-error" role="alert"></div>
+      <button class="button auth-button" type="submit">Login</button>
+    </form>
+    <div class="auth-actions">
+      <button class="button secondary" type="button" onclick="history.back()">← Back</button>
+      <span class="auth-note">Admin account: <strong>admin</strong> / <strong>12345</strong></span>
+    </div>
+  </section>
+</main>
+<script>
+const form=document.getElementById('loginForm');
+const username=document.getElementById('username'), password=document.getElementById('password');
+const usernameError=document.getElementById('usernameError'), passwordError=document.getElementById('passwordError'), loginError=document.getElementById('loginError');
+form.addEventListener('submit', async e=>{
+ e.preventDefault(); usernameError.textContent=''; passwordError.textContent=''; loginError.textContent='';
+ const un=username.value.trim(), pw=password.value;
+ let valid=true;
+ if(!un){usernameError.textContent='Username is required.';valid=false}
+ if(!pw){passwordError.textContent='Password is required.';valid=false}
+ if(!valid)return;
+ try{
+   const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:un,password:pw})});
+   const data=await r.json();
+   if(!r.ok){
+     if(data.error==='incorrect_username') usernameError.textContent='Incorrect username.';
+     else if(data.error==='incorrect_password') passwordError.textContent='Incorrect password.';
+     else loginError.textContent=data.message||'Login failed.';
+     return;
+   }
+   location.href='home.html';
+ }catch(err){loginError.textContent='Cannot connect to the server. Please run the Flask backend.';}
+});
+</script>
+</body></html>
