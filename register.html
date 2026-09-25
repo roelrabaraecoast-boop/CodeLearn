@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeLearn | Create Account</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+<main class="auth-container">
+<section class="auth-card">
+<div class="auth-logo">&lt;/&gt; CodeLearn</div>
+<p class="small-title">Get started</p>
+<h1>Create Account</h1>
+<p class="auth-subtitle">Create an account to save your learning progress.</p>
+
+<form id="registerForm" novalidate>
+<label for="username">Username</label>
+<input id="username" name="username" type="text" placeholder="Choose a username" autocomplete="username" required>
+<div id="usernameError" class="field-error"></div>
+
+<label for="email">Email</label>
+<input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required>
+<div id="emailError" class="field-error"></div>
+
+<label for="password">Password</label>
+<input id="password" name="password" type="password" placeholder="At least 6 characters" autocomplete="new-password" required>
+<div id="passwordError" class="field-error"></div>
+
+<label for="confirm">Confirm Password</label>
+<input id="confirm" name="confirm" type="password" placeholder="Re-enter password" autocomplete="new-password" required>
+<div id="confirmError" class="field-error"></div>
+
+<div id="registerError" class="login-error" role="alert"></div>
+<button class="button auth-button" type="submit">Create Account</button>
+</form>
+
+<div class="auth-actions">
+<button class="button secondary" type="button" onclick="history.back()">← Back</button>
+<a href="login.html">Already have an account?</a>
+</div>
+</section>
+</main>
+
+<script>
+const form = document.getElementById("registerForm");
+const username = document.getElementById("username");
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+const confirmPassword = document.getElementById("confirm");
+
+form.addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    document.getElementById("usernameError").textContent = "";
+    document.getElementById("emailError").textContent = "";
+    document.getElementById("passwordError").textContent = "";
+    document.getElementById("confirmError").textContent = "";
+    document.getElementById("registerError").textContent = "";
+
+    const un = username.value.trim();
+    const em = email.value.trim().toLowerCase();
+    const pw = password.value;
+    const cf = confirmPassword.value;
+
+    let valid = true;
+
+    if (!/^[a-zA-Z0-9_]{3,30}$/.test(un)) {
+        document.getElementById("usernameError").textContent =
+            "Username must be 3-30 characters and use only letters, numbers, or _.";
+        valid = false;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+        document.getElementById("emailError").textContent =
+            "Please enter a valid email address.";
+        valid = false;
+    }
+
+    if (pw.length < 6) {
+        document.getElementById("passwordError").textContent =
+            "Password must be at least 6 characters.";
+        valid = false;
+    }
+
+    if (pw !== cf) {
+        document.getElementById("confirmError").textContent =
+            "Passwords do not match.";
+        valid = false;
+    }
+
+    if (!valid) return;
+
+    try {
+        const response = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username: un,
+                email: em,
+                password: pw
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            if (data.error === "username_exists") {
+                document.getElementById("usernameError").textContent = data.message;
+            } else if (data.error === "email_exists") {
+                document.getElementById("emailError").textContent = data.message;
+            } else {
+                document.getElementById("registerError").textContent =
+                    data.message || "Unable to create account.";
+            }
+            return;
+        }
+
+        alert("Account created successfully!");
+        window.location.href = "login.html";
+
+    } catch (error) {
+        document.getElementById("registerError").textContent =
+            "Cannot connect to the server. Please run the Flask backend.";
+    }
+});
+</script>
+</body>
+</html>
